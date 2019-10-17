@@ -1,0 +1,34 @@
+apply plugin: "java-gradle-plugin"
+apply plugin: "org.jetbrains.kotlin.jvm"
+apply plugin: "kotlin-kapt"
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.vanniktech:gradle-maven-publish-plugin:0.7.0'
+    }
+}
+
+apply plugin: "com.vanniktech.maven.publish"
+
+gradlePlugin {
+    plugins {
+        simplePlugin {
+            id = "dagger-magic"
+            implementationClass = "dagger.magic.DaggerMagicGradlePlugin"
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    // contains classes like Subplugin, SubpluginOption, etc
+    implementation "org.jetbrains.kotlin:kotlin-gradle-plugin-api:$kotlin_version"
+
+    // Needed to register Subplugin as a service
+    compileOnly "com.google.auto.service:auto-service:1.0-rc4"
+    kapt "com.google.auto.service:auto-service:1.0-rc4"
+}

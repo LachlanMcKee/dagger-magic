@@ -1,0 +1,3 @@
+package myapp
+
+annotation class ModuleWithStaticMethods

@@ -1,0 +1,50 @@
+apply plugin: "java"
+apply plugin: "org.jetbrains.kotlin.jvm"
+apply plugin: "kotlin-kapt"
+
+targetCompatibility = JavaVersion.VERSION_1_8
+sourceCompatibility = JavaVersion.VERSION_1_8
+
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+        mavenCentral()
+        maven {
+            url "https://oss.sonatype.org/service/local/repositories/netlachlanmckee-1050/content/"
+        }
+    }
+    dependencies {
+        classpath "net.lachlanmckee:dagger-magic-gradle-plugin:0.0.1"
+    }
+}
+
+repositories {
+    maven {
+        url "https://oss.sonatype.org/service/local/repositories/netlachlanmckee-1050/content/"
+    }
+}
+
+apply plugin: "dagger-magic"
+
+daggerMagic {
+    enabled = true
+    moduleAllStaticAnnotation = "myapp.ModuleWithStaticMethods"
+    providesAnnotations = [
+            "myapp.ProvidesSingleton", "javax.inject.Singleton",
+            "myapp.ProvidesFeatureScope", "myapp.FeatureScope"
+    ]
+    bindsAnnotations = [
+            "myapp.BindsSingleton", "javax.inject.Singleton",
+            "myapp.BindsFeatureScope", "myapp.FeatureScope"
+    ]
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    implementation 'com.google.dagger:dagger:2.24'
+    kapt 'com.google.dagger:dagger-compiler:2.24'
+
+    testCompile "junit:junit:4.12"
+}
