@@ -31,7 +31,6 @@ internal class DaggerMagicClassBuilder(
             override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor {
                 if (descriptor?.equals(moduleAllStaticAnnotation) == true) {
                     shouldMethodsBeStatic = true
-                    originalVisitor.visitAnnotation(MODULE_DESCRIPTOR, true)
                 }
 
                 if (classLevelProvidesAnnotation == null) {
@@ -58,52 +57,64 @@ internal class DaggerMagicClassBuilder(
             return super.newMethod(origin, access, name, desc, signature, exceptions)
         }
 
-        val methodOriginal = super.newMethod(origin, calculateMethodAccess(access), name, desc, signature, exceptions)
+        val methodOriginal = super.newMethod(origin, calculateMethodAccess(access, desc), name, desc, signature, exceptions)
+
+        classLevelProvidesAnnotation?.let { annotation ->
+            addAnnotations(methodOriginal, PROVIDES_DESCRIPTOR, annotation.replacement)
+        }
+        classLevelBindsAnnotation?.let { annotation ->
+            addAnnotations(methodOriginal, BINDS_DESCRIPTOR, annotation.replacement)
+        }
 
         return object : MethodVisitor(Opcodes.ASM5, methodOriginal) {
             override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor {
-                handleAnnotationReplacement(descriptor, PROVIDES_DESCRIPTOR, providesAnnotations)
-                handleAnnotationReplacement(descriptor, BINDS_DESCRIPTOR, bindsAnnotations)
-
-                classLevelProvidesAnnotation?.let { annotation ->
-                    addAnnotations(PROVIDES_DESCRIPTOR, annotation.replacement)
-                }
-                classLevelBindsAnnotation?.let { annotation ->
-                    addAnnotations(BINDS_DESCRIPTOR, annotation.replacement)
-                }
+                replaceAnnotationIfRequired(descriptor, PROVIDES_DESCRIPTOR, providesAnnotations)
+                replaceAnnotationIfRequired(descriptor, BINDS_DESCRIPTOR, bindsAnnotations)
 
                 return super.visitAnnotation(descriptor, visible)
             }
 
-            private fun handleAnnotationReplacement(
+            private fun replaceAnnotationIfRequired(
                     annotationDescriptor: String?,
                     daggerAnnotation: String,
                     annotationReplacements: Replacements) {
 
                 annotationReplacements[annotationDescriptor]?.apply {
-                    addAnnotations(daggerAnnotation, this.replacement)
-                }
-            }
-
-            private fun addAnnotations(vararg annotations: String) {
-                annotations.forEach { annotation ->
-                    methodOriginal.visitAnnotation(annotation, true)
+                    addAnnotations(methodOriginal, daggerAnnotation, this.replacement)
                 }
             }
         }
     }
 
-    private fun calculateMethodAccess(originalAccess: Int): Int {
-        return if (shouldMethodsBeStatic && (originalAccess and Opcodes.ACC_ABSTRACT != Opcodes.ACC_ABSTRACT)) {
-            originalAccess xor Opcodes.ACC_STATIC
+    private fun addAnnotations(method: MethodVisitor, vararg annotations: String) {
+        annotations.forEach { annotation ->
+            method.visitAnnotation(annotation, true)
+        }
+    }
+
+    private fun calculateMethodAccess(originalAccess: Int, desc: String): Int {
+        return if (shouldMethodsBeStatic) {
+            when {
+                doesAccessContain(originalAccess, Opcodes.ACC_STATIC) -> originalAccess
+                doesAccessContain(originalAccess, Opcodes.ACC_ABSTRACT) -> originalAccess
+                isNoArgDesc(desc) -> originalAccess xor Opcodes.ACC_STATIC
+                else -> throw IllegalStateException("Methods with arguments must be annotated with @JvmStatic")
+            }
         } else {
             originalAccess
         }
     }
 
+    private fun doesAccessContain(access: Int, code: Int): Boolean {
+        return (access and code == code)
+    }
+
+    private fun isNoArgDesc(desc: String?): Boolean {
+        return desc?.startsWith("()L") ?: false
+    }
+
     private companion object {
         private const val CONSTRUCTOR_NAME = "<init>"
-        private const val MODULE_DESCRIPTOR = "Ldagger/Module;"
         private const val BINDS_DESCRIPTOR = "Ldagger/Binds;"
         private const val PROVIDES_DESCRIPTOR = "Ldagger/Provides;"
     }
