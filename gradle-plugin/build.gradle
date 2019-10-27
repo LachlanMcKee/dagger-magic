@@ -24,11 +24,5 @@ gradlePlugin {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-
-    // contains classes like Subplugin, SubpluginOption, etc
     implementation "org.jetbrains.kotlin:kotlin-gradle-plugin-api:$kotlin_version"
-
-    // Needed to register Subplugin as a service
-    compileOnly "com.google.auto.service:auto-service:1.0-rc4"
-    kapt "com.google.auto.service:auto-service:1.0-rc4"
 }

@@ -44,7 +44,6 @@ internal class DaggerMagicClassBuilder(
             }
         }
     }
-
     override fun newMethod(
             origin: JvmDeclarationOrigin,
             access: Int,

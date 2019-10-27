@@ -1,13 +1,11 @@
 package dagger.magic
 
-import com.google.auto.service.AutoService
 import org.jetbrains.kotlin.compiler.plugin.AbstractCliOption
 import org.jetbrains.kotlin.compiler.plugin.CliOption
 import org.jetbrains.kotlin.compiler.plugin.CommandLineProcessor
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.config.CompilerConfigurationKey
 
-@AutoService(CommandLineProcessor::class)
 class DaggerMagicCommandLineProcessor : CommandLineProcessor {
     override val pluginId: String = "dagger-magic"
 

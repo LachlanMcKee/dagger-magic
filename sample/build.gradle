@@ -9,20 +9,17 @@ buildscript {
         mavenLocal()
         jcenter()
         mavenCentral()
-        maven {
-            url "https://oss.sonatype.org/service/local/repositories/netlachlanmckee-1050/content/"
-        }
     }
     dependencies {
         classpath "net.lachlanmckee:dagger-magic-gradle-plugin:0.0.2"
     }
 }
 
-repositories {
-    maven {
-        url "https://oss.sonatype.org/service/local/repositories/netlachlanmckee-1050/content/"
-    }
-}
+//repositories {
+//    maven {
+//        url "https://oss.sonatype.org/service/local/repositories/netlachlanmckee-1050/content/"
+//    }
+//}
 
 apply plugin: "kotlin-kapt"
 apply plugin: "dagger-magic"
