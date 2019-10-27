@@ -11,7 +11,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "net.lachlanmckee:dagger-magic-gradle-plugin:0.0.2"
+        classpath "net.lachlanmckee:dagger-magic-gradle-plugin:0.0.3"
     }
 }
 
