@@ -3,10 +3,10 @@ package myapp
 import dagger.Module
 import java.math.BigDecimal
 
-@ModuleWithStaticMethods
 @ProvidesSingleton
 @Module(includes = [DaggerExampleModule.Inner::class])
 object DaggerExampleModule {
+    @JvmStatic
     fun provideString(): String = ""
 
     @JvmStatic
