@@ -1,6 +1,5 @@
 package dagger.magic
 
-import dagger.magic.mapper.ByteCodeMapper.convertClassPathToByteCode
 import dagger.magic.mapper.ReplacementsMapper
 import org.jetbrains.kotlin.codegen.extensions.ClassBuilderInterceptorExtension
 import org.jetbrains.kotlin.com.intellij.mock.MockProject
@@ -16,7 +15,6 @@ class DaggerMagicComponentRegistrar : ComponentRegistrar {
 
     private fun createExtension(configuration: CompilerConfiguration): ClassBuilderInterceptorExtension {
         return DaggerMagicExtension(
-                convertClassPathToByteCode(configuration[KEY_KOTLIN_OBJECT_MODULE_ANNOTATION]!!),
                 ReplacementsMapper.map(configuration[KEY_PROVIDES_ANNOTATIONS]!!),
                 ReplacementsMapper.map(configuration[KEY_BINDS_ANNOTATIONS]!!)
         )

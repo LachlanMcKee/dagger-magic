@@ -24,11 +24,7 @@ class DaggerMagicGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
         val extension = project.extensions.findByType(DaggerMagicGradleExtension::class.java)
                 ?: DaggerMagicGradleExtension()
 
-        val plugins = listOf(
-                SubpluginOption(key = "enabled", value = extension.enabled.toString()),
-                SubpluginOption(key = "moduleAllStaticAnnotation", value = extension.moduleAllStaticAnnotation)
-        )
-        return plugins
+        return listOf(SubpluginOption(key = "enabled", value = extension.enabled.toString()))
                 .plus(extension.bindsAnnotations.map { SubpluginOption(key = "bindsAnnotations", value = it) })
                 .plus(extension.providesAnnotations.map { SubpluginOption(key = "providesAnnotations", value = it) })
     }

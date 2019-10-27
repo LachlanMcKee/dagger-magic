@@ -16,13 +16,6 @@ class DaggerMagicCommandLineProcessor : CommandLineProcessor {
                     description = "whether the dagger magic plugin is enabled"
             ),
             CliOption(
-                    optionName = "moduleAllStaticAnnotation",
-                    valueDescription = "<classpath>",
-                    description = "fully qualified name of the annotation used to define a module in which all " +
-                            "non-abstract functions should be static",
-                    required = true
-            ),
-            CliOption(
                     optionName = "bindsAnnotations",
                     valueDescription = "<array-of-string>",
                     description = "a list of fully qualified annotations which must be added in multiples of two, " +
@@ -48,7 +41,6 @@ class DaggerMagicCommandLineProcessor : CommandLineProcessor {
             configuration: CompilerConfiguration
     ) = when (option.optionName) {
         "enabled" -> configuration.put(KEY_ENABLED, value.toBoolean())
-        "moduleAllStaticAnnotation" -> configuration.put(KEY_KOTLIN_OBJECT_MODULE_ANNOTATION, value)
         "bindsAnnotations" -> configuration.appendList(KEY_BINDS_ANNOTATIONS, value)
         "providesAnnotations" -> configuration.appendList(KEY_PROVIDES_ANNOTATIONS, value)
         else -> error("Unexpected config option ${option.optionName}")
@@ -56,6 +48,5 @@ class DaggerMagicCommandLineProcessor : CommandLineProcessor {
 }
 
 val KEY_ENABLED = CompilerConfigurationKey<Boolean>("plugin-enabled")
-val KEY_KOTLIN_OBJECT_MODULE_ANNOTATION = CompilerConfigurationKey<String>("all-static-module-annotation")
 val KEY_BINDS_ANNOTATIONS = CompilerConfigurationKey<List<String>>("bind-replacement-annotations")
 val KEY_PROVIDES_ANNOTATIONS = CompilerConfigurationKey<List<String>>("provide-replacement-annotations")

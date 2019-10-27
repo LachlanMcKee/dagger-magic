@@ -26,7 +26,6 @@ apply plugin: "dagger-magic"
 
 daggerMagic {
     enabled = true
-    moduleAllStaticAnnotation = "myapp.ModuleWithStaticMethods"
     providesAnnotations = [
             "myapp.ProvidesSingleton", "javax.inject.Singleton",
             "myapp.ProvidesFeatureScope", "myapp.FeatureScope"

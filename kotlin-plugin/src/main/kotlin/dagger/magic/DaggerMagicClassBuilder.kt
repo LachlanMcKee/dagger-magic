@@ -11,13 +11,11 @@ import org.jetbrains.org.objectweb.asm.MethodVisitor
 import org.jetbrains.org.objectweb.asm.Opcodes
 
 internal class DaggerMagicClassBuilder(
-        private val moduleAllStaticAnnotation: String,
         private val providesAnnotations: Replacements,
         private val bindsAnnotations: Replacements,
         private val delegateBuilder: ClassBuilder
 ) : DelegatingClassBuilder() {
 
-    private var shouldMethodsBeStatic = false
     private var classLevelProvidesAnnotation: Replacement? = null
     private var classLevelBindsAnnotation: Replacement? = null
 
@@ -29,10 +27,6 @@ internal class DaggerMagicClassBuilder(
         val originalVisitor = super.getVisitor()
         return object : ClassVisitor(Opcodes.ASM5, originalVisitor) {
             override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor {
-                if (descriptor?.equals(moduleAllStaticAnnotation) == true) {
-                    shouldMethodsBeStatic = true
-                }
-
                 if (classLevelProvidesAnnotation == null) {
                     classLevelProvidesAnnotation = providesAnnotations[descriptor]
                 }
@@ -52,11 +46,10 @@ internal class DaggerMagicClassBuilder(
             signature: String?,
             exceptions: Array<out String>?): MethodVisitor {
 
+        val methodOriginal = super.newMethod(origin, access, name, desc, signature, exceptions)
         if (name == CONSTRUCTOR_NAME) {
-            return super.newMethod(origin, access, name, desc, signature, exceptions)
+            return methodOriginal
         }
-
-        val methodOriginal = super.newMethod(origin, calculateMethodAccess(access, desc), name, desc, signature, exceptions)
 
         classLevelProvidesAnnotation?.let { annotation ->
             addAnnotations(methodOriginal, PROVIDES_DESCRIPTOR, annotation.replacement)
@@ -89,27 +82,6 @@ internal class DaggerMagicClassBuilder(
         annotations.forEach { annotation ->
             method.visitAnnotation(annotation, true)
         }
-    }
-
-    private fun calculateMethodAccess(originalAccess: Int, desc: String): Int {
-        return if (shouldMethodsBeStatic) {
-            when {
-                doesAccessContain(originalAccess, Opcodes.ACC_STATIC) -> originalAccess
-                doesAccessContain(originalAccess, Opcodes.ACC_ABSTRACT) -> originalAccess
-                isNoArgDesc(desc) -> originalAccess xor Opcodes.ACC_STATIC
-                else -> throw IllegalStateException("Methods with arguments must be annotated with @JvmStatic")
-            }
-        } else {
-            originalAccess
-        }
-    }
-
-    private fun doesAccessContain(access: Int, code: Int): Boolean {
-        return (access and code == code)
-    }
-
-    private fun isNoArgDesc(desc: String?): Boolean {
-        return desc?.startsWith("()L") ?: false
     }
 
     private companion object {
