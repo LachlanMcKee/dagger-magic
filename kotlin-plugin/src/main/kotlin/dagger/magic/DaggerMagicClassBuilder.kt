@@ -13,8 +13,7 @@ internal class DaggerMagicClassBuilder(
         private val delegateBuilder: ClassBuilder
 ) : DelegatingClassBuilder() {
 
-    private var isModuleClass = false
-    private var nonStaticMethodNames = mutableListOf<String>()
+    private var state: State = State(isModuleClass = false, nonStaticMethodNames = emptyList())
     private var classLevelProvidesAnnotation: Replacement? = null
     private var classLevelBindsAnnotation: Replacement? = null
 
@@ -27,7 +26,7 @@ internal class DaggerMagicClassBuilder(
         return object : ClassVisitor(Opcodes.ASM5, originalVisitor) {
             override fun visitAnnotation(descriptor: String?, visible: Boolean): AnnotationVisitor {
                 if (descriptor?.equals(MODULE_DESCRIPTOR) == true) {
-                    isModuleClass = true
+                    state = state.copy(isModuleClass = true)
                 }
 
                 if (classLevelProvidesAnnotation == null) {
@@ -52,13 +51,18 @@ internal class DaggerMagicClassBuilder(
 
         val methodOriginal = super.newMethod(origin, access, name, desc, signature, exceptions)
 
+        if (!state.isModuleClass) {
+            return methodOriginal
+        }
+
         // Avoid constructors and non-public methods.
-        if (!isModuleClass || name == CONSTRUCTOR_NAME || !doesAccessContain(access, Opcodes.ACC_PUBLIC)) {
+        val isPublicFunction = doesAccessContain(access, Opcodes.ACC_PUBLIC)
+        if (name == CONSTRUCTOR_NAME || !isPublicFunction) {
             return methodOriginal
         }
 
         if (!doesAccessContain(access, Opcodes.ACC_STATIC)) {
-            nonStaticMethodNames.add(name)
+            state = state.copy(nonStaticMethodNames = state.nonStaticMethodNames.plus(name))
         }
 
         classLevelProvidesAnnotation?.let { annotation ->
@@ -88,9 +92,16 @@ internal class DaggerMagicClassBuilder(
         }
     }
 
-    override fun newField(origin: JvmDeclarationOrigin, access: Int, name: String, desc: String, signature: String?, value: Any?): FieldVisitor {
+    override fun newField(
+            origin: JvmDeclarationOrigin,
+            access: Int,
+            name: String,
+            desc: String,
+            signature: String?,
+            value: Any?): FieldVisitor {
+
         val newField = super.newField(origin, access, name, desc, signature, value)
-        if (!isModuleClass) {
+        if (!state.isModuleClass) {
             return newField
         }
 
@@ -99,8 +110,8 @@ internal class DaggerMagicClassBuilder(
                 desc == "L$thisName;" &&
                 access == (Opcodes.ACC_PUBLIC or Opcodes.ACC_STATIC or Opcodes.ACC_FINAL)
 
-        check(!(isObjectInstanceField && nonStaticMethodNames.isNotEmpty())) {
-            "Not all methods are static: ${nonStaticMethodNames.joinToString()}"
+        check(!(isObjectInstanceField && state.nonStaticMethodNames.isNotEmpty())) {
+            "Not all methods are static: ${state.nonStaticMethodNames.joinToString()}"
         }
 
         return newField
@@ -115,6 +126,11 @@ internal class DaggerMagicClassBuilder(
     private fun doesAccessContain(access: Int, code: Int): Boolean {
         return (access and code == code)
     }
+
+    private data class State(
+            val isModuleClass: Boolean,
+            val nonStaticMethodNames: List<String>
+    )
 
     private companion object {
         private const val CONSTRUCTOR_NAME = "<init>"

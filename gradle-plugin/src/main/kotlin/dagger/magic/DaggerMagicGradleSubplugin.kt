@@ -25,8 +25,17 @@ class DaggerMagicGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
                 ?: DaggerMagicGradleExtension()
 
         return listOf(SubpluginOption(key = "enabled", value = extension.enabled.toString()))
-                .plus(extension.bindsAnnotations.map { SubpluginOption(key = "bindsAnnotations", value = it) })
-                .plus(extension.providesAnnotations.map { SubpluginOption(key = "providesAnnotations", value = it) })
+                .addOptionList("bindsAnnotations", extension.bindsAnnotations)
+                .addOptionList("providesAnnotations", extension.providesAnnotations)
+    }
+
+    private fun List<SubpluginOption>.addOptionList(
+            key: String,
+            annotationsList: List<String>): List<SubpluginOption> {
+
+        return plus(annotationsList.map {
+            SubpluginOption(key = key, value = it)
+        })
     }
 
     override fun getCompilerPluginId(): String = "dagger-magic"
