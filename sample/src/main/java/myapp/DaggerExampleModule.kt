@@ -10,10 +10,14 @@ object DaggerExampleModule {
     fun provideString(): String = ""
 
     @JvmStatic
-    fun provideRegex(stringDep: String): Regex = Regex(stringDep)
+    fun provideRegex(stringDep: String): Regex = regexBuilder(stringDep)
 
     @JvmStatic
     fun provideBigDecimal(regex: Regex): BigDecimal = BigDecimal(5)
+
+    private fun regexBuilder(stringDep: String): Regex {
+        return Regex(stringDep)
+    }
 
     @BindsSingleton
     @Module

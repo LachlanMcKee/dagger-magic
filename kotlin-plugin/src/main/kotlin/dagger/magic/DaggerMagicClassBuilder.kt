@@ -51,7 +51,9 @@ internal class DaggerMagicClassBuilder(
             exceptions: Array<out String>?): MethodVisitor {
 
         val methodOriginal = super.newMethod(origin, access, name, desc, signature, exceptions)
-        if (!isModuleClass || name == CONSTRUCTOR_NAME) {
+
+        // Avoid constructors and non-public methods.
+        if (!isModuleClass || name == CONSTRUCTOR_NAME || !doesAccessContain(access, Opcodes.ACC_PUBLIC)) {
             return methodOriginal
         }
 

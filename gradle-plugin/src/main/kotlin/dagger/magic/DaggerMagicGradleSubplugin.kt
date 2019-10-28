@@ -34,6 +34,6 @@ class DaggerMagicGradleSubplugin : KotlinGradleSubplugin<AbstractCompile> {
     override fun getPluginArtifact(): SubpluginArtifact = SubpluginArtifact(
             groupId = "net.lachlanmckee",
             artifactId = "dagger-magic-kotlin-plugin",
-            version = "0.0.3"
+            version = "0.0.4"
     )
 }
